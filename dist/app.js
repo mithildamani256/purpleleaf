@@ -36,11 +36,19 @@ const puppeteer = __importStar(require("puppeteer"));
 const cheerio = require('cheerio');
 const TurndownService = require('turndown');
 const axios = require('axios');
+const Zod_1 = require("Zod");
+const PageDataSchema = Zod_1.z.object({
+    title: Zod_1.z.string(),
+    description: Zod_1.z.string().optional(),
+    keywords: Zod_1.z.string().optional(),
+    bodyHTML: Zod_1.z.string(),
+    bodyMarkdown: Zod_1.z.string(),
+});
 let scrapeWithPuppeteer = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const browser = yield puppeteer.launch({ headless: false, userDataDir: './user_data' });
         const page = yield browser.newPage();
-        const URL = 'https://www.airbnb.co.in';
+        const URL = 'https://www.willow.tv/tvchannel';
         yield page.setViewport({
             width: 1280,
             height: 800,
@@ -52,11 +60,24 @@ let scrapeWithPuppeteer = () => __awaiter(void 0, void 0, void 0, function* () {
         $('script, style, img, a').remove();
         // Get the cleaned-up HTML
         const cleanHTML = $('body').html();
+        const headHTML = yield page.evaluate(() => document.head.innerHTML);
+        const $1 = cheerio.load(headHTML);
+        const head = $1('head');
+        const title = head.find('title').text() || 'no title p';
+        const description = head.find('meta[name="description"]').attr('content') || 'no desc p';
+        const keywords = head.find('meta[name="keywords"]').attr('content') || 'no keywords p';
         // Convert to markdown using Turndown
         const turndownService = new TurndownService();
         const markdown = turndownService.turndown(cleanHTML);
-        console.log(markdown);
+        const pageData = PageDataSchema.parse({
+            title,
+            description,
+            keywords,
+            bodyHTML: cleanHTML,
+            bodyMarkdown: markdown
+        });
         yield browser.close();
+        return pageData;
     }
     catch (e) {
         console.log(e);
@@ -64,7 +85,7 @@ let scrapeWithPuppeteer = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 let main_actual = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const URL = 'https://www.airbnb.co.in';
+        const URL = 'https://www.willow.tv/tvchannel';
         // Fetch the HTML using axios
         const { data: bodyHTML } = yield axios.get(URL);
         // Load the bodyHTML into Cheerio for parsing
@@ -73,16 +94,25 @@ let main_actual = () => __awaiter(void 0, void 0, void 0, function* () {
         $('script, style, img, a').remove();
         // Get the cleaned-up HTML
         const cleanHTML = $('body').html();
-        // Check the length of cleanHTML
-        if (cleanHTML && cleanHTML.length < 200) {
-            console.log("Clean HTML is too short, switching to Puppeteer...");
-            yield scrapeWithPuppeteer();
+        const head = $('head');
+        const title = head.find('title').text() || 'no title p';
+        const description = head.find('meta[name="description"]').attr('content') || 'no desc p';
+        const keywords = head.find('meta[name="keywords"]').attr('content') || 'no keywords p';
+        // // Convert to markdown using Turndown
+        const turndownService = new TurndownService();
+        const markdown = turndownService.turndown(cleanHTML);
+        const pageData = PageDataSchema.parse({
+            title,
+            description,
+            keywords,
+            bodyHTML: cleanHTML,
+            bodyMarkdown: markdown
+        });
+        if (markdown.length < 2000) {
+            return scrapeWithPuppeteer();
         }
         else {
-            // Convert to markdown using Turndown
-            const turndownService = new TurndownService();
-            const markdown = turndownService.turndown(cleanHTML);
-            console.log(markdown.length);
+            return pageData;
         }
     }
     catch (e) {
