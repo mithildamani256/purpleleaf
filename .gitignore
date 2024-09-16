@@ -1,3 +1,5 @@
 node_modules
 secrets.ts
 user_data/
+dist/
+.env

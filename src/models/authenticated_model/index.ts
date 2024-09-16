@@ -1,5 +1,9 @@
 import * as puppeteer from 'puppeteer';
-import { username, password } from './secrets';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+const username = process.env.USERNAME || '';
+const password = process.env.PASSWORD || '';
 
 let authenticate = async (page : puppeteer.Page) => {
 
@@ -66,7 +70,6 @@ let extractSpanText = async (page: puppeteer.Page) => {
         console.log('Error during text extraction:', e);
     }
 }
-
 
 
 let main_actual = async() => {
