@@ -4,7 +4,7 @@ const TurndownService = require('turndown');
 import {z} from 'Zod';
 const fs = require('fs');
 
-const PageDataSchema = z.object({
+export const PageDataSchema = z.object({
     title: z.string(),
     description: z.string().optional(),
     keywords: z.string().optional(),

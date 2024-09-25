@@ -45,7 +45,7 @@ export const scrapewithAxios = async (URL: string) => {
     });
 
     if(markdown.length < 2000){
-        return "";
+        return undefined;
     }
     else{             // Save the website info in a markdown file
         const markdownContent = `
