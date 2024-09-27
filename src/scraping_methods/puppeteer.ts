@@ -1,17 +1,9 @@
+import cheerio from 'cheerio';
 import * as puppeteer from 'puppeteer';
-const cheerio = require('cheerio');
-const TurndownService = require('turndown');
-import {z} from 'Zod';
-const fs = require('fs');
-
-export const PageDataSchema = z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    keywords: z.string().optional(),
-    bodyHTML: z.string(),
-    bodyMarkdown: z.string(),
-});
-
+import TurndownService from 'turndown';
+import { PageDataSchema } from '../types/page-data';
+import { storage } from '../database/firebase';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 export const scrapeWithPuppeteer = async (URL: string) => {
     try {
@@ -22,10 +14,7 @@ export const scrapeWithPuppeteer = async (URL: string) => {
             height: 800,
             deviceScaleFactor: 1
         });
-        await page.goto(URL, { waitUntil: 'networkidle2' });
-
-        const screenshotPath = `C:\\Users\\DELL\\Desktop\\purpleleaf\\screenshots\\screenshot_${Date.now()}.png`;  // Save the file with a timestamp to avoid overwriting
-        await page.screenshot({ path: screenshotPath, fullPage: true });
+        await page.goto(URL, { waitUntil: ["load", "domcontentloaded"] });
 
         const bodyHTML = await page.evaluate(() => document.body.innerHTML);
         const $ = cheerio.load(bodyHTML);
@@ -33,7 +22,7 @@ export const scrapeWithPuppeteer = async (URL: string) => {
         $('script, style, img, a').remove();
 
         // Get the cleaned-up HTML
-        const cleanHTML = $('body').html();
+        const cleanHTML = $('body').html() || "";
 
         const headHTML = await page.evaluate(() => document.head.innerHTML);
         const $1 = cheerio.load(headHTML);
@@ -47,36 +36,33 @@ export const scrapeWithPuppeteer = async (URL: string) => {
         // Convert to markdown using Turndown
         const turndownService = new TurndownService();
         const markdown = turndownService.turndown(cleanHTML);
+        
+        if (markdown.length < 1500) {
+            throw new Error(`Markdown length is too short: ${markdown.length} characters. Minimum required is 1500.`);
+        }
+        else {
+            const markdownFileRef = ref(storage, `markdowns/pageInfo_${Date.now()}.md`);
+            const markdownBuffer = Buffer.from(markdown, 'utf-8');
+            await uploadBytes(markdownFileRef, markdownBuffer);
 
-        const pageData = PageDataSchema.parse({
-            title,
-            description,
-            keywords,
-            bodyHTML: cleanHTML,
-            bodyMarkdown: markdown
-        });
+            const screenshotBuffer = await page.screenshot({ fullPage: true });
+            const screenshotFileRef = ref(storage, `screenshots/screenshot_${Date.now()}.png`);
+            await uploadBytes(screenshotFileRef, screenshotBuffer);
 
-                // Save the website info in a markdown file
-        const markdownContent = `
-            # ${pageData.title}
-                
-            **Description**: ${pageData.description}
-                
-            **Keywords**: ${pageData.keywords}
-                
-            ---
-                
-            ## Content:
-                
-            ${pageData.bodyMarkdown}
-        `;
-                       
-        const markdownPath = `C:\\Users\\DELL\\Desktop\\purpleleaf\\markdowns\\pageInfo_${Date.now()}.md`;  // Save the markdown file with a timestamp
-        fs.writeFileSync(markdownPath, markdownContent);
+            const screenshotUrl = await getDownloadURL(screenshotFileRef);
 
-        await browser.close();
+            const pageData = PageDataSchema.parse({
+                    title,
+                    description,
+                    keywords,
+                    markdown,
+                    screenshot : screenshotUrl
+            });
+            
+             await browser.close();
 
-        return pageData;
+            return pageData;
+        }
     } catch (e) {
         console.log(e);
     }

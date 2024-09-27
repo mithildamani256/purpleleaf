@@ -1,8 +1,7 @@
 import { scrapeWithPuppeteer } from "../../scraping_methods/puppeteer";
 import { scrapewithAxios } from "../../scraping_methods/axios";
-import { data } from "cheerio/dist/commonjs/api/attributes";
 
-let main_actual = async (URL: string) => {
+const main_actual = async (URL: string) => {
     let val = await scrapewithAxios(URL);
     if(val == undefined){
         val = await scrapeWithPuppeteer(URL);

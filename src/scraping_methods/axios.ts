@@ -1,17 +1,9 @@
-import * as puppeteer from 'puppeteer';
-const cheerio = require('cheerio');
-const TurndownService = require('turndown');
-const axios = require('axios');
-import {z} from 'Zod';
-const fs = require('fs');
-
-const PageDataSchema = z.object({
-    title: z.string(),
-    description: z.string().optional(),
-    keywords: z.string().optional(),
-    bodyHTML: z.string(),
-    bodyMarkdown: z.string(),
-});
+import cheerio from 'cheerio';
+import TurndownService from 'turndown';
+import axios from 'axios';
+import { PageDataSchema } from '../types/page-data';
+import { storage } from '../database/firebase';
+import { ref, uploadBytes } from 'firebase/storage';
 
 export const scrapewithAxios = async (URL: string) => {
     try {
@@ -25,7 +17,7 @@ export const scrapewithAxios = async (URL: string) => {
     $('script, style, img, a').remove();
 
     // Get the cleaned-up HTML
-    const cleanHTML = $('body').html();
+    const cleanHTML = $('body').html() || "";
     const head = $('head')
 
     const title = head.find('title').text() || 'no title p';
@@ -40,33 +32,19 @@ export const scrapewithAxios = async (URL: string) => {
         title,
         description,
         keywords,
-        bodyHTML: cleanHTML,
-        bodyMarkdown: markdown
+        markdown
     });
 
-    if(markdown.length < 2000){
+    if(markdown.length < 2500){
         return undefined;
     }
-    else{             // Save the website info in a markdown file
-        const markdownContent = `
-            # ${pageData.title}
-                            
-            **Description**: ${pageData.description}
-                            
-            **Keywords**: ${pageData.keywords}
-                            
-            ---
-                            
-            ## Content:
-                            
-            ${pageData.bodyMarkdown}
-        `;
-                                   
-        const markdownPath = `C:\\Users\\DELL\\Desktop\\purpleleaf\\markdowns\\pageInfo_${Date.now()}.md`;  // Save the markdown file with a timestamp
-        fs.writeFileSync(markdownPath, markdownContent);
+    else {  
+        const markdownFileRef = ref(storage, `markdowns/pageInfo_${Date.now()}.md`);
+        const markdownBuffer = Buffer.from(markdown, 'utf-8');
+        await uploadBytes(markdownFileRef, markdownBuffer);
+
         return pageData; 
     }
-
 } catch (e) {
     console.log(e);
 }

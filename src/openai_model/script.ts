@@ -1,7 +1,7 @@
 import { main } from "../models/unauthenticated_model/app";
 import {z} from 'Zod';
 import * as dotenv from 'dotenv';
-import { PageDataSchema } from "../scraping_methods/puppeteer";
+import { PageDataSchema } from "../types/page-data";
 import readline from 'readline';
 import { OpenAIClient , AzureKeyCredential} from '@azure/openai';
 dotenv.config();
@@ -15,7 +15,6 @@ const userInterface = readline.createInterface({
 
 const endpoint:string = process.env["AZURE_OPENAI_ENDPOINT"] || "";
 const apiKey : string = process.env["AZURE_OPENAI_API_KEY"] || "";
-const apiVersion = "2024-05-01-preview";
 const deployment : string = process.env.AZURE_OPENAI_CHAT_COMPLETION_MODEL_DEPLOYMENT_ID || ""; 
 
 const client = new OpenAIClient(endpoint, new AzureKeyCredential(apiKey));
@@ -26,11 +25,13 @@ async function answerQuestion(pageData : PageData , question : string) {
     `Title: ${pageData.title || "No Ttile provided."}
     Description: ${pageData.description || "No description provided."}
     Keywords: ${pageData.keywords || "No Keywords provided."}
+    screenshotURL : ${pageData.screenshot || "No image available"}
+
     Question: ${question}
     Answer:
     `;
 
-    let messages = [
+    const messages = [
         { role: 'system', content: systemMessage },
         { role: 'user', content: userMessage },
       ];
@@ -43,13 +44,11 @@ async function answerQuestion(pageData : PageData , question : string) {
     }
 }
 
-
 main().then(data => {
-    const myData: { title: string; bodyHTML: string; bodyMarkdown: string; description?: string; keywords?: string; } | undefined = data;
-    if(myData){
+    if(data){
         userInterface.prompt();
         userInterface.on("line" , async input => {
-            await answerQuestion(myData, input);
+            await answerQuestion(data, input);
             userInterface.prompt();
         })
     }
