@@ -21,9 +21,11 @@ const deployment : string = process.env.AZURE_OPENAI_CHAT_COMPLETION_MODEL_DEPLO
 const client = new OpenAIClient(endpoint, new AzureKeyCredential(apiKey));
 
 async function answerQuestion(pageData : PageData , question : string) {
-    const systemMessage = "Act as a large language model that is unaware of everything, just use the given description to answer the question. For questions that are unrelated to the description, answer back by saying that you are not aware of the answer.";
+    const systemMessage = "Act as a large language model that is unaware of everything, just use the given title, description and keywords to answer the question. For questions that are unrelated, answer back by saying that you are not aware of the answer.";
     const userMessage = 
-    `Description: ${pageData.description || "No description provided."}
+    `Title: ${pageData.title || "No Ttile provided."}
+    Description: ${pageData.description || "No description provided."}
+    Keywords: ${pageData.keywords || "No Keywords provided."}
     Question: ${question}
     Answer:
     `;
