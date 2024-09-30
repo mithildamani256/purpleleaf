@@ -59,7 +59,7 @@ export const scrapeWithPuppeteer = async (URL: string) => {
                     screenshot : screenshotUrl
             });
             
-             await browser.close();
+            await browser.close();
 
             return pageData;
         }
