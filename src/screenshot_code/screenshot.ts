@@ -5,7 +5,7 @@ export const screenshot = async ( URL : string ) => {
     const page = await browser.newPage();
 
     await page.setViewport({ width: 1280, height: 1024 });
-    await page.goto(URL, {
+    await page.goto( URL, {
         waitUntil: ["load", "domcontentloaded"],
     });
 
@@ -19,7 +19,7 @@ export const screenshot = async ( URL : string ) => {
     return page_promise;
 };
 
-async function scroll(page:puppeteer.Page) {
+async function scroll( page:puppeteer.Page ) {
     return await page.evaluate(async () => {
         return await new Promise((resolve, reject) => {
             var i = setInterval(() => {

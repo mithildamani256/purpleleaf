@@ -49,18 +49,15 @@ export const scrapeWithPuppeteer = async (URL: string) => {
             const screenshotBuffer = await screenshot(URL);
             const screenshotFileRef = ref(storage, `screenshots/screenshot_${Date.now()}.png`);
             await uploadBytes(screenshotFileRef, screenshotBuffer);
-            // const screenshotBuffer = await page.screenshot({ fullPage: true });
-            // const screenshotFileRef = ref(storage, `screenshots/screenshot_${Date.now()}.png`);
-            // await uploadBytes(screenshotFileRef, screenshotBuffer);
 
-            // const screenshotUrl = await getDownloadURL(screenshotFileRef);
+            const screenshotUrl = await getDownloadURL(screenshotFileRef);
 
             const pageData = PageDataSchema.parse({
                 title,
                 description,
                 keywords,
                 markdown,
-                // screenshot: screenshotUrl
+                screenshot: screenshotUrl
             });
             
             await browser.close();
