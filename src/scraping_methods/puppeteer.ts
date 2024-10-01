@@ -1,9 +1,10 @@
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 import * as puppeteer from 'puppeteer';
 import TurndownService from 'turndown';
 import { PageDataSchema } from '../types/page-data';
 import { storage } from '../database/firebase';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { screenshot } from '../screenshot_code/screenshot';
 
 export const scrapeWithPuppeteer = async (URL: string) => {
     try {
@@ -45,18 +46,21 @@ export const scrapeWithPuppeteer = async (URL: string) => {
             const markdownBuffer = Buffer.from(markdown, 'utf-8');
             await uploadBytes(markdownFileRef, markdownBuffer);
 
-            const screenshotBuffer = await page.screenshot({ fullPage: true });
+            const screenshotBuffer = await screenshot(URL);
             const screenshotFileRef = ref(storage, `screenshots/screenshot_${Date.now()}.png`);
             await uploadBytes(screenshotFileRef, screenshotBuffer);
+            // const screenshotBuffer = await page.screenshot({ fullPage: true });
+            // const screenshotFileRef = ref(storage, `screenshots/screenshot_${Date.now()}.png`);
+            // await uploadBytes(screenshotFileRef, screenshotBuffer);
 
-            const screenshotUrl = await getDownloadURL(screenshotFileRef);
+            // const screenshotUrl = await getDownloadURL(screenshotFileRef);
 
             const pageData = PageDataSchema.parse({
-                    title,
-                    description,
-                    keywords,
-                    markdown,
-                    screenshot : screenshotUrl
+                title,
+                description,
+                keywords,
+                markdown,
+                // screenshot: screenshotUrl
             });
             
             await browser.close();
