@@ -33,9 +33,7 @@ export async function answerQuestion(pageData : PageData , question : string, ch
         { content: systemMessage, role: 'system'}
     ];
     
-    const val  = {messages, max_tokens: 200, model: deployment} 
-
-    const result = await client.chat.completions.create(val);
+    const result = await client.chat.completions.create({messages, max_tokens: 200, model: deployment} );
 
     if(result){
         const answer = result.choices[0].message.content;
