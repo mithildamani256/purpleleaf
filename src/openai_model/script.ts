@@ -16,7 +16,7 @@ const options = { apiKey, deployment, endpoint, apiVersion }
 
 const client = new AzureOpenAI(options);
 
-export async function answerQuestion(pageData : PageData , question : string) {
+export async function answerQuestion(pageData : PageData , question : string, chatHistory : Array<ChatCompletionMessageParam> ) {
     const systemMessage = "Act as a large language model that is unaware of everything, just use the given title, description and keywords to answer the question. For questions that are unrelated, answer back by saying that you are not aware of the answer.";
     const userMessage =      
     `Title: ${pageData.title || "No Ttile provided."}
@@ -26,9 +26,10 @@ export async function answerQuestion(pageData : PageData , question : string) {
     Question: ${question}
     Answer:
     `;
-    
+
     const messages : Array<ChatCompletionMessageParam>= [
-        { content: userMessage, role: 'user'},
+        { content: userMessage, role: 'user' },
+        ...chatHistory,
         { content: systemMessage, role: 'system'}
     ];
     
@@ -38,7 +39,8 @@ export async function answerQuestion(pageData : PageData , question : string) {
 
     if(result){
         const answer = result.choices[0].message.content;
-        
         console.log(answer);
+
+        return answer;
     }
 }
