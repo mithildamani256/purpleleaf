@@ -1,4 +1,4 @@
-import { scrapeWithPuppeteer } from "../../scraping_methods/puppeteer";
+import { scrapeWithPuppeteer } from "./scraping_methods/puppeteer";
 
 const scrape = async (URL: string) => {
     let val = await scrapeWithPuppeteer(URL);
@@ -6,10 +6,12 @@ const scrape = async (URL: string) => {
 }
 
 export const main = async () => {
-    const URL = process.argv[2];  // Capture the URL from command-line arguments
+    const URL = process.argv[2];
+
     if (!URL) {
         return
     }
+
     const data = await scrape(URL);
-    return data;
+    return { data, URL };
 }

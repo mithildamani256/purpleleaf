@@ -1,7 +1,8 @@
 import readline from 'readline';
-import { main } from "../models/unauthenticated_model/app";
+import { main } from "../app";
 import { answerQuestion } from './script';
 import { ChatCompletionMessageParam } from "../../node_modules/openai/src/resources/chat/completions"
+import { uploadChatHistory } from '../chatHistory/uploadChatHistory';
 
 let chatHistory : Array<ChatCompletionMessageParam> = [];
 
@@ -10,13 +11,26 @@ const userInterface = readline.createInterface({
     output: process.stdout
 })
 
-main().then(data => {
-    if(data){
+main().then(obj => {
+    if(obj){
         userInterface.prompt();
         userInterface.on("line", async input => {
             chatHistory.push({ role: 'user', content: input });
-            const answer = await answerQuestion(data, input, chatHistory);
+
+            if (chatHistory.length > 10) {
+                chatHistory.shift(); 
+                chatHistory.shift();
+            }
+
+            let answer;
+            if (obj.data) {
+                answer = await answerQuestion(obj.data, input, chatHistory);
+            }
+           
             chatHistory.push({ role: 'assistant', content: answer });
+            
+            await uploadChatHistory(obj.URL, chatHistory);
+
             userInterface.prompt();
         })
     }
