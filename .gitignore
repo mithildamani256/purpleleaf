@@ -3,3 +3,4 @@ secrets.ts
 user_data/
 dist/
 .env
+src/database/config/admin.json
