@@ -1,40 +1,53 @@
 import { db, storageBucket } from "../config/firebase";
 import * as admin from 'firebase-admin';
 
-export async function storeMarkdownInFirestore(markdown: string, url:string) {
+export async function storeMarkdownInFirestore(markdown: string, url: string, name:string) {
     try {
         const docRef = await db.collection("markdowns").add({
             content: markdown,
-            website: url
+            website: name,
+            URL: url
         });
     } catch (e) {
-        console.error("Error storing markdown or uploading file: ", e);
+        throw new Error(`Error storing markdown or uploading file: ${e}`);
     }
 }
 
-export async function storeScreenshotAndUrlInFirestore(screenshot: Uint8Array, URL : string) {
+export async function storeScreenshotAndUrlInFirestore(screenshot: Uint8Array, url: string, name: string) {
+    const fileName = `screenshots/${name}.png`;
+    const file = storageBucket.file(fileName);
+    let file_location;
+
     try {
-        const fileName = `screenshots/${URL}.png`;
-        const file = storageBucket.file(fileName);
         await file.save(screenshot, {
             metadata: {
                 contentType: 'image/png',
             }
-            });
+        });
+    }
+    catch (e) {
+        throw new Error(`error saving screenshot of file on firebase storage ${e}`);
+    }
 
-        const [url] = await file.getSignedUrl({
+    try {
+        [file_location] = await file.getSignedUrl({
             action: 'read',
             expires: '03-09-2500',
         });
+    }
+    catch (e) {
+        throw new Error(`error in finding the url of the saved screenshot file ${e}`);
+    }
 
+    try {
         const docRef = await db.collection('screenshots').add({
-            fileUrl: url,
-            website: URL
+            fileUrl: file_location,
+            website: name
         });
+    }
+    catch (e) {
+        throw new Error(`error in saving screenshot file url ${e}`)
+    }
 
-        return url;
-  } catch (error) {
-        console.error("Error uploading screenshot or storing URL: ", error);
-        return "";
-  }
+    return file_location;
 }

@@ -12,26 +12,24 @@ const userInterface = readline.createInterface({
 })
 
 main().then(obj => {
-    if(obj){
-        userInterface.prompt();
-        userInterface.on("line", async input => {
-            chatHistory.push({ role: 'user', content: input });
+    userInterface.prompt();
+    userInterface.on("line", async input => {
+        chatHistory.push({ role: 'user', content: input });
 
-            if (chatHistory.length > 10) {
-                chatHistory.shift(); 
-                chatHistory.shift();
-            }
+        if (chatHistory.length > 20) {
+            chatHistory.shift(); 
+            chatHistory.shift();
+        }
 
-            let answer;
-            if (obj.data) {
-                answer = await answerQuestion(obj.data, input, chatHistory);
-            }
+        const answer = await answerQuestion(obj.data, input, chatHistory);
            
-            chatHistory.push({ role: 'assistant', content: answer });
+        chatHistory.push({ role: 'assistant', content: answer });
             
-            await uploadChatHistory(obj.URL, chatHistory);
+        await uploadChatHistory(obj.URL, chatHistory);
 
-            userInterface.prompt();
+        userInterface.prompt();
         })
-    }
-}).catch(error => console.error('Error:', error));
+}).catch(error => {
+    console.log(error);
+    process.exit();
+});

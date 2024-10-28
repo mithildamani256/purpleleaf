@@ -43,8 +43,8 @@ export const scrapeWithPuppeteer = async (link: string) => {
             const parsedUrl = new URL(link);
             const websiteName = parsedUrl.hostname;
 
-            await storeMarkdownInFirestore(markdown, websiteName);
-            const screenshotUrl: string = await storeScreenshotAndUrlInFirestore(screenshotBuffer, websiteName);
+            await storeMarkdownInFirestore(markdown, link, websiteName);
+            const screenshotUrl = await storeScreenshotAndUrlInFirestore(screenshotBuffer, link, websiteName);
 
             const pageData = PageDataSchema.parse({
                 title,
@@ -59,6 +59,6 @@ export const scrapeWithPuppeteer = async (link: string) => {
             return pageData;
         }
     } catch (e) {
-        console.log(e);
+        throw new Error(`There is an issue with the scraping function and the issue is : ${e}`  )
     }
 }

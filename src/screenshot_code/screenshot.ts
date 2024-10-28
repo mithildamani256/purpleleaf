@@ -1,22 +1,29 @@
 import * as puppeteer from 'puppeteer';
 
-export const screenshot = async ( URL : string ) => {
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
+export const screenshot = async (URL: string) => {
+    
+    try {
+        const browser = await puppeteer.launch({ headless: true });
+        const page = await browser.newPage();
 
-    await page.setViewport({ width: 1280, height: 1024 });
-    await page.goto( URL, {
-        waitUntil: ["load", "domcontentloaded"],
-    });
+        await page.setViewport({ width: 1280, height: 1024 });
+        await page.goto( URL, {
+            waitUntil: ["load", "domcontentloaded"],
+        });
 
-    await scroll(page);
+        await scroll(page);
 
-    const page_promise = page.screenshot({
-        type: "png",
-        fullPage: true,
-    });
+        const page_promise = page.screenshot({
+            type: "png",
+            fullPage: true,
+        });
 
-    return page_promise;
+        return page_promise;
+    }
+
+    catch (e) {
+        throw new Error(`There is an issue in taking the screenshot : ${e}`);
+    }
 };
 
 async function scroll( page:puppeteer.Page ) {

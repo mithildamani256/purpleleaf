@@ -1,7 +1,6 @@
 import { getDownloadURL, ref, uploadBytes, uploadString } from 'firebase/storage';
 import { ChatCompletionMessageParam } from "openai/src/resources/chat/completions.js";
-import { db, storageBucket } from "../database/config/firebase";
-import * as admin from 'firebase-admin';
+import { db } from "../database/config/firebase";
 
 export async function uploadChatHistory(url: string, chatHistory: Array<ChatCompletionMessageParam>) {
     try {
@@ -25,7 +24,8 @@ export async function uploadChatHistory(url: string, chatHistory: Array<ChatComp
         try {
             const docRef = await db.collection("chatHistory").add({
                 history: newChatHistory,
-                website: websiteName
+                website: websiteName,
+                url: url
             });
         } catch (e) {
             console.error("Error storing markdown or uploading file: ", e);

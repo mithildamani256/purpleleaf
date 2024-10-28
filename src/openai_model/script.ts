@@ -36,7 +36,7 @@ export async function answerQuestion(pageData : PageData , question : string, ch
 
     if(result){
         const answer = result.choices[0].message.content;
-
         return answer;
     }
+    
 }
