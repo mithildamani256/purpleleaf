@@ -1,5 +1,4 @@
 import { db, storageBucket } from "../config/firebase";
-import * as admin from 'firebase-admin';
 
 export async function storeMarkdownInFirestore(markdown: string, url: string, name:string) {
     try {
@@ -42,7 +41,8 @@ export async function storeScreenshotAndUrlInFirestore(screenshot: Uint8Array, u
     try {
         const docRef = await db.collection('screenshots').add({
             fileUrl: file_location,
-            website: name
+            website: name,
+            URL: url
         });
     }
     catch (e) {
