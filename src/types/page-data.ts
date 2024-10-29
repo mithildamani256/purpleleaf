@@ -5,5 +5,5 @@ export const PageDataSchema = z.object({
     description: z.string(),
     keywords: z.string(),
     markdown: z.string(),
-    screenshot: z.string().url().optional()
+    screenshot: z.string().url()
 });

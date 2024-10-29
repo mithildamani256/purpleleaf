@@ -3,7 +3,7 @@ import * as puppeteer from 'puppeteer';
 import TurndownService from 'turndown';
 import { PageDataSchema } from '../types/page-data';
 import { screenshot } from '../screenshot_code/screenshot';
-import { storeMarkdownInFirestore, storeScreenshotAndUrlInFirestore } from '../database/operations/storage'
+import { storeDetailsInFirestore, storeMarkdownInFirestore, storeScreenshotAndUrlInFirestore } from '../database/operations/storage'
 
 export const scrapeWithPuppeteer = async (link: string) => {
     try {
@@ -43,8 +43,10 @@ export const scrapeWithPuppeteer = async (link: string) => {
             const parsedUrl = new URL(link);
             const websiteName = parsedUrl.hostname;
 
-            await storeMarkdownInFirestore(markdown, link, websiteName);
+            // await storeMarkdownInFirestore(markdown, link, websiteName);
             const screenshotUrl = await storeScreenshotAndUrlInFirestore(screenshotBuffer, link, websiteName);
+
+            await storeDetailsInFirestore(title, keywords, description, markdown, screenshotUrl, link, websiteName);
 
             const pageData = PageDataSchema.parse({
                 title,

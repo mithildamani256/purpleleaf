@@ -1,6 +1,6 @@
 import { db, storageBucket } from "../config/firebase";
 
-export async function storeMarkdownInFirestore(markdown: string, url: string, name:string) {
+export async function storeMarkdownInFirestore(markdown: string, url: string, name: string) {
     try {
         const docRef = await db.collection("markdowns").add({
             content: markdown,
@@ -13,7 +13,7 @@ export async function storeMarkdownInFirestore(markdown: string, url: string, na
 }
 
 export async function storeScreenshotAndUrlInFirestore(screenshot: Uint8Array, url: string, name: string) {
-    const fileName = `screenshots/${name}.png`;
+    const fileName = `screenshots/${url}.png`;
     const file = storageBucket.file(fileName);
     let file_location;
 
@@ -38,16 +38,32 @@ export async function storeScreenshotAndUrlInFirestore(screenshot: Uint8Array, u
         throw new Error(`error in finding the url of the saved screenshot file ${e}`);
     }
 
-    try {
-        const docRef = await db.collection('screenshots').add({
-            fileUrl: file_location,
-            website: name,
-            URL: url
-        });
-    }
-    catch (e) {
-        throw new Error(`error in saving screenshot file url ${e}`)
-    }
+    // try {
+    //     const docRef = await db.collection('screenshots').add({
+    //         fileUrl: file_location,
+    //         website: name,
+    //         URL: url
+    //     });
+    // }
+    // catch (e) {
+    //     throw new Error(`error in saving screenshot file url ${e}`)
+    // }
 
     return file_location;
+}
+
+export async function storeDetailsInFirestore(title: string, keywords: string, description: string, markdown: string, screenshot: string, url: string, websiteName: string) {
+    try {
+        const docRef = await db.collection("details").add({
+            title: title,
+            keywords: keywords,
+            description: description,
+            markdown: markdown,
+            screenshot: screenshot, 
+            URL: url,
+            website: websiteName,
+        });
+    } catch (e) {
+        throw new Error(`Error storing the entire details of ${url}: ${e}`);
+    }
 }
