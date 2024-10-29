@@ -2,8 +2,6 @@ import { db } from '../../config/firebase';
 import * as admin from 'firebase-admin';
 import { ChatCompletionMessageParam } from "openai/src/resources/chat/completions.js";
 
-let data: Array<ChatCompletionMessageParam> = [];
-
 export async function getChatHistory(url: string) {
     try {
         const collectionRef = db.collection('chatHistory');
@@ -13,7 +11,13 @@ export async function getChatHistory(url: string) {
             const doc = querySnapshot.docs[0];
             const data = doc.data();
 
-            return data.chatHistory;
+            const history = data.chatHistory;
+
+            if (history.length >= 20) {
+                return history.slice(-10);
+            }
+
+            return history;
         }
         else {
             return [];
