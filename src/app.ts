@@ -41,5 +41,3 @@ export const main = async () => {
         throw(e);
     }
 }
-
-// then we need to work on chathistory and chatsummary. 
